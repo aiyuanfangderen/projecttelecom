@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.demo.mapper.SysMenuMapper" >
+
+     <insert id="insertMenu" parameterType="com.demo.entity.SysMenu">
+     insert into sys_menu(name,english_name,url,order_number,author_flag,display_flag,previous_meuid,create_time) 
+     values(#{name},#{english_name},#{url},#{order_number},#{author_flag},#{display_flag}
+         ,#{previous_meuid},#{create_time})
+     
+     </insert>
+
+
+
+
+    <insert id="insertMenuModule" parameterType="com.demo.entity.SysMenuModule">
+     insert into sys_menu_module(moduleid,menuid,create_time,update_time) 
+     values(#{moduleid},#{menuid},#{create_time},#{update_time})
+    
+    </insert>
+
+
+
+    <!-- <select id="findUser" resultType="com.demo.entity.User" parameterType="int">
+    
+        SELECT * FROM user where user.id=#{id}
+    </select> -->
+
+</mapper>

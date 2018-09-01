@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.demo.mapper.SysModuleMapper" >
+
+    <insert id="insertModule" parameterType="com.demo.entity.SysModule">
+     insert into sys_module(module_code,module_name,default_query_scope,default_auth_type,create_time,update_time) 
+     values(#{module_code},#{module_name},#{default_query_scope},#{default_auth_type},#{create_time},#{update_time})
+    </insert>
+
+
+   <insert id="insertModuleRole" parameterType="com.demo.entity.SysModuleRole">
+      insert into sys_module_role(roleid,moduleid,query_scope,create_time,update_time)
+      values(#{roleid},#{moduleid},#{query_scope},#{create_time},#{create_time})
+   
+   
+   
+   </insert>
+
+   <!-- 查询顶级菜单 -->
+   <select id="selectMenu" parameterType="int" resultType="com.demo.entity.SysMenu">
+   select sys_menu.id,sys_menu.name,sys_menu.english_name,sys_menu.url,sys_menu.order_number,sys_menu.author_flag,
+   sys_menu.display_flag,sys_menu.previous_meuid,sys_menu.create_time,sys_menu.update_time
+   from sys_menu_module,sys_menu where sys_menu_module.moduleid=#{id} and sys_menu_module.menuid=sys_menu.id
+   
+   </select>
+
+
+
+
+<!-- 查询其他的菜单的情况 -->
+ <select id="selectOtherMenu" parameterType="int" resultType="com.demo.entity.SysMenu">
+  select sys_menu.id,sys_menu.name,sys_menu.english_name,sys_menu.url,sys_menu.order_number,sys_menu.author_flag,
+   sys_menu.display_flag,sys_menu.previous_meuid,sys_menu.create_time,sys_menu.update_time
+   from sys_menu where sys_menu.previous_meuid=#{id} 
+ 
+ 
+ </select>
+
+
+  <!-- 删除菜单时 -->
+<delete id="deleteMenu" parameterType="int">
+delete from sys_menu where sys_menu.id=#{id}
+
+</delete>
+
+
+
+</mapper>
