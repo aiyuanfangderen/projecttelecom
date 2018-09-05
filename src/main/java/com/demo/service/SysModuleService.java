@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.demo.entity.SysMenu;
+import com.demo.entity.SysMenuModule;
 import com.demo.entity.SysModule;
 import com.demo.entity.SysModuleRole;
 import com.demo.mapper.SysModuleMapper;
@@ -33,7 +34,10 @@ public class SysModuleService
 		return sysModuleMapper.selectMenu(id);
 	}
 	
-
+   public List<SysMenu> selectMenu2()
+   {
+	   return sysModuleMapper.selectMenu2();
+   }
 	
 	
 	
@@ -46,6 +50,12 @@ public class SysModuleService
 	public void deleteMenu(int id)
 	{
 		sysModuleMapper.deleteMenu(id);
+	}
+	
+	
+	public void deleteModuleMenu(SysMenuModule sysMenuModules)
+	{
+		sysModuleMapper.deleteModuleMenu(sysMenuModules);
 	}
 	
 	

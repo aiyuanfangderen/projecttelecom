@@ -4,16 +4,27 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 
+import java.io.FileInputStream;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.demo.dto.RoleConfigure;
 import com.demo.dto.UserModule;
@@ -271,7 +282,7 @@ public class SysController
    }
    
    
-   //插入菜单模块关联表
+   //插入菜单模块关联表,就是在模块中有一个添加按键
    
    @RequestMapping("/insertMenuModule")
    public Result insertMenuModule(SysMenuModule sysMenuModule)
@@ -378,14 +389,23 @@ public class SysController
    
 
   
+   //用户点击模块时开始查询所有的顶级菜单,将所有能选择的顶级菜单显示，供用户选择
+   @RequestMapping("/selectMenu3")
+   public Result selectMenu3()
+   {
+	   List<SysMenu> sysMenus=sysModuleService.selectMenu2();
+	   System.out.println(sysMenus);
+	   
+
+	   return ResultUtil.success(sysMenus);
+   }
    
    
    
    
    
    
-   
-   //用户再模块中通过模块id查找菜单
+   //用户再模块中通过模块id查找菜单,用于显示已经和模块对应的菜单
    @RequestMapping("/selectMenu2")
    public Result selectMenu2(int id1)
    {
@@ -480,8 +500,8 @@ public class SysController
    @RequestMapping("/selectRoleConfigure2")
    public Result selectRoleConfigure2(int id)
    {
-//	 int id=1;
-	RoleConfigure roleConfigure=sysRoleService.selectRoleConfigure2(id);
+	 //int id=1;
+	List<RoleConfigure> roleConfigure=sysRoleService.selectRoleConfigure2(id);
 	 System.out.println(roleConfigure);
 	   
 	   return ResultUtil.success(roleConfigure);
@@ -666,7 +686,246 @@ public class SysController
    
    
    
-   //角色信息配置,这个地方通过角色和用户相关联起来
+  
+   
+   
+   
+   
+
+
+   
+   
+   
+   
+   //批量导入包括的内容：部门的添加，人员的添加，参数字典配置的导入导出
+   
+   
+   
+   
+   //批量导入部门
+   @RequestMapping("/MangImportDepartment")
+   public Result MangImportDepartment(@RequestParam("items_pic") MultipartFile items_pic)
+   {
+	   
+	 //  String filePath="E:\\Department.xlsx";
+	   String filePath=items_pic.getOriginalFilename();
+	   SysDepartment sysDepartment=new SysDepartment();
+	 //  SysUserRole sysUserRole=new SysUserRole();
+	   if(!filePath.endsWith(".xls")&&!filePath.endsWith(".xlsx")){
+           System.out.println("文件不是excel类型");
+       }
+	   FileInputStream fis =null;
+       Workbook wookbook = null;
+       int lineNum = 0;
+       Sheet sheet = null;
+       try{
+           //获取一个绝对地址的流
+           fis = new FileInputStream(filePath);
+           //2003版本的excel，用.xls结尾, 2007版本以.xlsx
+           if(filePath.endsWith(".xls")){
+               wookbook = new HSSFWorkbook(fis);//得到工作簿
+           }else{
+               wookbook = new XSSFWorkbook(fis);//得到工作簿
+           }
+           //得到一个工作表
+           sheet = wookbook.getSheetAt(0);
+           //获得表头
+           Row rowHead = sheet.getRow(0);
+           //列数
+           int rows = rowHead.getPhysicalNumberOfCells();
+           //行数
+           lineNum = sheet.getLastRowNum();
+           if(0 == lineNum){
+               System.out.println("Excel内没有数据！");
+           }
+           getData1(sheet, lineNum, rows, sysDepartment,sysDepartmentService);
+       } catch (Exception e){
+           e.printStackTrace();
+       }
+	   
+	   
+	   
+	   
+	   return ResultUtil.success();
+   }
+   
+   
+   public static  void  getData1(Sheet sheet, int lineNum, int rowNum, SysDepartment sysDepartment,SysDepartmentService sysDepartmentService)
+   {
+       //获得所有数据
+       for(int i = 1; i <= lineNum; i++){
+           //获得第i行对象
+           Row row = sheet.getRow(i);
+           List<String> list = new ArrayList<>();
+           for(int j=0; j<rowNum; j++){
+             
+           Cell cell=row.getCell(j);
+               cell.setCellType(CellType.STRING);
+             String str =cell.getStringCellValue();
+               
+               list.add(str);
+           }
+          // sysUserRole.setRole_id(Integer.valueOf(list.get(0)));    
+          // sysUserRole.setUser_id(Integer.valueOf(list.get(1)));          
+          sysDepartment.setNumber(Integer.valueOf(list.get(0)));
+          sysDepartment.setName(list.get(1));
+          sysDepartment.setAlias(list.get(2));
+          sysDepartment.setEnglish_name(list.get(3));
+          sysDepartment.setEnglish_alias(list.get(4));
+          sysDepartment.setPrincipal(list.get(5));
+          sysDepartment.setDeputy(list.get(6));
+          if(Integer.valueOf(list.get(7))==0)
+          {
+        	  sysDepartment.setDisplay(false);
+          }
+          else 
+          {
+        	  sysDepartment.setDisplay(true);
+		   }
+          
+          sysDepartment.setSuperior(Integer.valueOf(list.get(8)));
+          sysDepartment.setSituation(list.get(9));
+          sysDepartment.setTransceiver(list.get(10));
+          sysDepartment.setDepartment_id(list.get(11));
+          sysDepartment.setDepartment_number(list.get(12));
+          sysDepartment.setDescription(list.get(13));
+          if(Integer.valueOf(list.get(14))==0)
+          {
+        	 sysDepartment.setCirculation(false);
+          }
+          else 
+          {
+        	  sysDepartment.setCirculation(true);
+		  }
+          
+          sysDepartment.setArea(list.get(15));
+          
+          
+          
+      	Date date=new Date();
+		
+		//参数为long型
+		Timestamp t = new Timestamp(date.getTime());
+		sysDepartment.setCreate_time(t);
+          
+        
+  
+          System.out.println(sysDepartment);
+         sysDepartmentService.insertDepartment(sysDepartment);
+          
+          
+       }
+   }
+   
+   
+   
+   
+   //批量人员的添加
+   @RequestMapping("/MangImportUser")
+   public Result MangImportUser(@RequestParam("items_pic") MultipartFile items_pic)
+   {
+	   
+	  // String filePath="E:\\User.xlsx";
+	   String filePath=items_pic.getOriginalFilename();
+	   SysUser sysUser=new SysUser();
+	//   SysDepartment sysDepartment=new SysDepartment();
+	 //  SysUserRole sysUserRole=new SysUserRole();
+	   if(!filePath.endsWith(".xls")&&!filePath.endsWith(".xlsx")){
+           System.out.println("文件不是excel类型");
+       }
+	   FileInputStream fis =null;
+       Workbook wookbook = null;
+       int lineNum = 0;
+       Sheet sheet = null;
+       try{
+           //获取一个绝对地址的流
+           fis = new FileInputStream(filePath);
+           //2003版本的excel，用.xls结尾, 2007版本以.xlsx
+           if(filePath.endsWith(".xls")){
+               wookbook = new HSSFWorkbook(fis);//得到工作簿
+           }else{
+               wookbook = new XSSFWorkbook(fis);//得到工作簿
+           }
+           //得到一个工作表
+           sheet = wookbook.getSheetAt(0);
+           //获得表头
+           Row rowHead = sheet.getRow(0);
+           //列数
+           int rows = rowHead.getPhysicalNumberOfCells();
+           //行数
+           lineNum = sheet.getLastRowNum();
+           if(0 == lineNum){
+               System.out.println("Excel内没有数据！");
+           }
+           getData2(sheet, lineNum, rows, sysUser,sysUserService);
+       } catch (Exception e){
+           e.printStackTrace();
+       }
+	   
+	   
+	   
+	   
+	   return ResultUtil.success();
+   }
+   
+   
+   
+   
+   public static  void  getData2(Sheet sheet, int lineNum, int rowNum, SysUser sysUser,SysUserService sysUserService)
+   {
+       //获得所有数据
+       for(int i = 1; i <= lineNum; i++){
+           //获得第i行对象
+           Row row = sheet.getRow(i);
+           List<String> list = new ArrayList<>();
+           for(int j=0; j<rowNum; j++){
+             
+           Cell cell=row.getCell(j);
+               cell.setCellType(CellType.STRING);
+             String str =cell.getStringCellValue();
+               
+               list.add(str);
+           }
+                
+           
+           sysUser.setUsername(list.get(0));
+           sysUser.setPassword(list.get(1));
+           sysUser.setRealname(list.get(2));
+           sysUser.setUsercode(list.get(3));
+           sysUser.setLevel(Integer.valueOf(list.get(4)));
+           sysUser.setPosition(list.get(5));
+           sysUser.setDepartment_id(Integer.valueOf(list.get(6)));
+           if(Integer.valueOf(list.get(7))==1)
+           {
+        	   sysUser.setCom_leader(true); 
+           }
+           if(Integer.valueOf(list.get(7))==0)
+           {
+        	   sysUser.setCom_leader(false);
+           }
+           
+           sysUser.setOrder_number(list.get(8));
+           sysUser.setEmail(list.get(9));
+           sysUser.setState(Integer.valueOf(list.get(10)));
+           
+           
+
+          
+          
+          
+      	Date date=new Date();
+		
+		//参数为long型
+		Timestamp t = new Timestamp(date.getTime());
+		sysUser.setCreate_time(t);
+          
+        
+  
+          System.out.println(sysUser);
+          sysUserService.insertUser(sysUser);
+          
+       }
+   }
    
    
    
@@ -674,7 +933,119 @@ public class SysController
    
    
    
-   //模块信息配置，这里将模块和角色关联起来
+   
+   
+   
+   
+   
+   
+   //删除关联的表
+   
+   
+   //删除模块对应的顶级菜单时，去模块关联表关联表删除关联数据
+        //可以多个同时删除，只需将多个模块id和菜单id传到后台即可
+   @RequestMapping("/deleteModuleMenu")
+   public Result deleteModuleMenu(List<SysMenuModule> list)
+   {
+//	   List<SysMenuModule> list=new ArrayList<SysMenuModule>();
+//	   
+//	   SysMenuModule sysMenuModule1=new SysMenuModule();
+//	   SysMenuModule sysMenuModule2=new SysMenuModule();
+//	   sysMenuModule1.setModuleid(1);
+//	   sysMenuModule1.setMenuid(3);
+//	   sysMenuModule2.setModuleid(1);
+//	   sysMenuModule2.setMenuid(2);
+//	   list.add(sysMenuModule1);
+//	   list.add(sysMenuModule2);
+	   for(SysMenuModule sysMenuModule:list)
+	   {
+		   sysModuleService.deleteModuleMenu(sysMenuModule);	 
+	   }
+	    
+	   
+	   
+	   
+	   return ResultUtil.success();
+   }
+   
+   
+   
+   
+   
+   
+   //删除角色对应用户时，去角色用户表关联表删除角色和用户关联的数据
+   @RequestMapping("/deleteUserRole")
+   public Result deleteUserRole(List<SysUserRole> list)
+   {
+	   
+//	   List<SysUserRole> list=new ArrayList<SysUserRole>();
+//	   
+//	   SysUserRole sysUserRole1=new SysUserRole();
+//	   SysUserRole sysUserRole2=new SysUserRole();
+//	   sysUserRole1.setUser_id(1);
+//	   sysUserRole1.setRole_id(2);
+//	   sysUserRole2.setUser_id(2);
+//	   sysUserRole2.setRole_id(1);
+//	  
+//	   list.add(sysUserRole1);
+//	   list.add(sysUserRole2);
+	   for(SysUserRole sysUserRole:list)
+	   {
+		   sysRoleService.deleteUserRole(sysUserRole);
+		 
+	   }
+	    
+	   
+	   
+	   
+	   return ResultUtil.success();
+   }
+   
+   
+   
+   
+   
+   
+   //删除模块对应角色时，去模块角色表删除对应数据
+   @RequestMapping("/deleteRoleModule")
+   public Result deleteRoleModule(List<SysModuleRole> list)
+   {
+	   
+	 
+//	   List<SysModuleRole> list=new ArrayList<SysModuleRole>();
+//	 
+//	  SysModuleRole sysModuleRole1=new SysModuleRole();
+//	 SysModuleRole sysModuleRole2=new SysModuleRole();
+//	  
+//	  sysModuleRole1.setModuleid(3);
+//	  sysModuleRole1.setRoleid(2);
+//	  sysModuleRole2.setModuleid(4);
+//	  sysModuleRole2.setRoleid(2);
+//	   
+//	   list.add(sysModuleRole1);
+//	   list.add(sysModuleRole2);
+	   
+	 
+	   for(SysModuleRole sysModuleRole:list)
+	   {
+		   sysRoleService.deleteRoleModule(sysModuleRole);
+		 
+	   }
+	    
+	   
+	   
+	   
+	   return ResultUtil.success();
+   }
+   
+   
+   
+  
+   
+   
+   
+   
+
    
 	
 }

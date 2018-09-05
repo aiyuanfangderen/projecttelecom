@@ -146,7 +146,9 @@ private int id;//id
    private Boolean circulation;//是否正副职同时传阅
    private Timestamp create_time;//开始时间
    private Timestamp update_time;//更新时间
-   private String area;
+   private String area;//地址
+   
+   
 @Override
 public String toString() {
 	return "SysDepartment [id=" + id + ", number=" + number + ", name=" + name + ", alias=" + alias + ", english_name="

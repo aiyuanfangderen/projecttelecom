@@ -12,7 +12,7 @@
 
 
 
-
+  <!--插入菜单模块表-->
     <insert id="insertMenuModule" parameterType="com.demo.entity.SysMenuModule">
      insert into sys_menu_module(moduleid,menuid,create_time,update_time) 
      values(#{moduleid},#{menuid},#{create_time},#{update_time})

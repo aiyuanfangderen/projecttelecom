@@ -70,7 +70,7 @@ public class RoleConfigure
     private String user_id;//用户id
     private String username;//用户名称
     private String name;//部门名称
-    //所属地区先空着
+    //部门的id
     private String area;
 	@Override
 	public String toString() {
